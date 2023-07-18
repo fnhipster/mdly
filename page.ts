@@ -1,4 +1,5 @@
 import { render as renderEJS } from 'https://esm.sh/v128/ejs@3.1.9';
+import { dirname } from 'https://deno.land/std@0.194.0/path/mod.ts';
 import { renderContent } from './content.ts';
 
 export async function getPageHTML(index: {
@@ -10,7 +11,6 @@ export async function getPageHTML(index: {
   styles?: string[];
   revalidate?: boolean;
 }) {
-  console.log('🚧', new URL('./client.js', import.meta.url).pathname);
   // get data
   const model = await getModel(index.model);
 
@@ -47,8 +47,8 @@ export async function getPageHTML(index: {
             .then((js) => `initializers.push(${js});`)
             .catch();
         }),
-        await Deno.readTextFile(
-          new URL('./client.js', import.meta.url).pathname
+        await fetch(dirname(import.meta.url) + '/client.js').then((res) =>
+          res.text()
         ),
       ])
     ).join('\n');
