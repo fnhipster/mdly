@@ -10,6 +10,7 @@ export async function getPageHTML(index: {
   styles?: string[];
   revalidate?: boolean;
 }) {
+  console.log('🚧', new URL('./client.js', import.meta.url).pathname);
   // get data
   const model = await getModel(index.model);
 
@@ -46,7 +47,9 @@ export async function getPageHTML(index: {
             .then((js) => `initializers.push(${js});`)
             .catch();
         }),
-        await Deno.readTextFile('./client.js'),
+        await Deno.readTextFile(
+          new URL('./client.js', import.meta.url).pathname
+        ),
       ])
     ).join('\n');
 
