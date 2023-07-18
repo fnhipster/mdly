@@ -46,7 +46,7 @@ export async function getPageHTML(index: {
             .then((js) => `initializers.push(${js});`)
             .catch();
         }),
-        await Deno.readTextFile(new URL('./client.js', import.meta.url).href),
+        await Deno.readTextFile('./client.js'),
       ])
     ).join('\n');
 
