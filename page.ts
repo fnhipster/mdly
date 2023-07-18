@@ -16,17 +16,7 @@ export async function getPageHTML(index: {
   revalidate?: boolean;
 }) {
   // get data
-  const model =
-    index.model &&
-    (await import(index.model + '?v=' + Date.now()).catch().then((_model) => {
-      if (!_model?.default) return {};
-
-      if (typeof _model.default === 'function') {
-        return _model.default();
-      }
-
-      return _model.default;
-    }));
+  const model = await getModel(index.model);
 
   const data = {
     ...model,
@@ -91,4 +81,18 @@ export async function getPageHTML(index: {
   }, Promise.resolve(markdown ? await renderContent(markdown) : ''));
 
   return html;
+}
+
+async function getModel(path?: string) {
+  if (!path) return {};
+
+  return await import(path).catch().then((_model) => {
+    if (!_model?.default) return {};
+
+    if (typeof _model.default === 'function') {
+      return _model.default();
+    }
+
+    return _model.default;
+  });
 }
