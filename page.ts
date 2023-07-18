@@ -1,8 +1,3 @@
-import {
-  dirname,
-  fromFileUrl,
-  join,
-} from 'https://deno.land/x/std/path/mod.ts';
 import { render as renderEJS } from 'https://esm.sh/v128/ejs@3.1.9';
 import { renderContent } from './content.ts';
 
@@ -52,7 +47,7 @@ export async function getPageHTML(index: {
             .catch();
         }),
         await Deno.readTextFile(
-          join(new URL('.', import.meta.url).pathname, './client.js')
+          new URL('./client.js', import.meta.url).pathname
         ),
       ])
     ).join('\n');
