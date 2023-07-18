@@ -6,9 +6,6 @@ import { exists } from 'https://deno.land/std@0.78.0/fs/exists.ts';
 import { getPageHTML } from './page.ts';
 import { ensureDir, emptyDir } from 'https://deno.land/std@0.78.0/fs/mod.ts';
 
-// Initial Index
-let index = await getPagesIndex();
-
 // Watch for changes in pages (dev mode only)
 if (Deno.env.get('DEVELOPMENT')) {
   // Clean build directory
@@ -33,6 +30,9 @@ if (Deno.env.get('DEVELOPMENT')) {
     }
   }, 0);
 }
+
+// Initial Index
+let index = await getPagesIndex();
 
 // Create build directory
 await ensureDir(BUILD_PATH);
