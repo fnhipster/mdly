@@ -86,13 +86,15 @@ export async function getPageHTML(index: {
 async function getModel(path?: string) {
   if (!path) return {};
 
-  return await import(path).catch().then((_model) => {
-    if (!_model?.default) return {};
+  return await import('file://' + path + '?v=' + Date.now())
+    .catch()
+    .then((_model) => {
+      if (!_model?.default) return {};
 
-    if (typeof _model.default === 'function') {
-      return _model.default();
-    }
+      if (typeof _model.default === 'function') {
+        return _model.default();
+      }
 
-    return _model.default;
-  });
+      return _model.default;
+    });
 }
