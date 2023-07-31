@@ -6,6 +6,9 @@ import { exists } from 'https://deno.land/std@0.78.0/fs/exists.ts';
 import { getPageHTML } from './page.ts';
 import { ensureDir } from 'https://deno.land/std@0.78.0/fs/mod.ts';
 
+// Create build directory
+await ensureDir(BUILD_PATH);
+
 // Initial Index
 let index = await getPagesIndex();
 
@@ -30,9 +33,6 @@ if (Deno.env.get('DEVELOPMENT')) {
     }
   }, 0);
 }
-
-// Create build directory
-await ensureDir(BUILD_PATH);
 
 async function handler(request: Request): Promise<Response> {
   const url = new URL(request.url);
@@ -74,8 +74,10 @@ async function handler(request: Request): Promise<Response> {
     // Not found
     if (!page) throw new Deno.errors.NotFound();
 
+    const revalidate = page.lastUpdatedAt > page.lastCachedAt;
+
     // Rebuild page if revalidate is true on on development
-    if (Deno.env.get('DEVELOPMENT') && page.revalidate) {
+    if (Deno.env.get('DEVELOPMENT') && revalidate) {
       const html = await getPageHTML(page);
 
       if (html) {
@@ -86,6 +88,9 @@ async function handler(request: Request): Promise<Response> {
         await Deno.writeTextFile(`${BUILD_PATH}${page.route}index.html`, html, {
           create: true,
         }).catch(console.error);
+
+        // Update Pages Index
+        index = await getPagesIndex();
       }
     }
 

@@ -7,7 +7,8 @@ export async function getPagesIndex() {
   const contents: Record<string, string> = {};
   const scripts: Record<string, string> = {};
   const styles: Record<string, string> = {};
-  const revalidates: Record<string, boolean> = {};
+  const updatedAt: Record<string, number[]> = {};
+  const cachedAt: Record<string, number[]> = {};
   const routes: string[] = [];
 
   for await (const entry of walk(PAGES_PATH, {
@@ -18,41 +19,40 @@ export async function getPagesIndex() {
     const key = getKey(entry);
 
     if (entry.isFile && entry.name === 'template.ejs') {
-      revalidates[key] = revalidates[key] || (await hasChanged(entry));
       templates[key] = entry.path;
-      continue;
     }
 
     if (entry.isFile && entry.name === 'script.js') {
-      revalidates[key] = revalidates[key] || (await hasChanged(entry));
       scripts[key] = entry.path;
-      continue;
     }
 
     if (entry.isFile && entry.name === 'style.css') {
-      revalidates[key] = revalidates[key] || (await hasChanged(entry));
       styles[key] = entry.path;
-      continue;
     }
 
     if (entry.isFile && entry.name === 'model.ts') {
-      revalidates[key] = revalidates[key] || (await hasChanged(entry));
       models[key] = entry.path;
-      continue;
     }
 
     if (entry.isFile && entry.name === 'content.md') {
-      revalidates[key] = revalidates[key] || (await hasChanged(entry));
       contents[key] = entry.path;
-      continue;
     }
 
     if (entry.isDirectory && key !== '') {
-      if (key !== '/') routes.push(key);
-      continue;
+      routes.push(key);
     }
 
-    continue;
+    if (entry.isFile) {
+      updatedAt[key] = [
+        ...(updatedAt[key] ?? []),
+        await getModifiedDate(entry.path),
+      ];
+
+      cachedAt[key] = [
+        ...(cachedAt[key] ?? []),
+        await getModifiedDate(`${BUILD_PATH}/${key}index.html`),
+      ];
+    }
   }
 
   return (
@@ -66,13 +66,14 @@ export async function getPagesIndex() {
         // get content
         const content = contents[route];
 
-        // get revalidation
-        const _revalidate = revalidates[route];
-
         // get templates
         const _templates: string[] = [];
         const _scripts: string[] = [];
         const _styles: string[] = [];
+
+        // get last updated/cached at
+        const _lastUpdatedAt: number[] = [];
+        const _lastCachedAt: number[] = [];
 
         const _routes: string[] = [];
 
@@ -83,10 +84,14 @@ export async function getPagesIndex() {
           const t = templates[key];
           const s = scripts[key];
           const c = styles[key];
+          const u = updatedAt[key];
+          const a = cachedAt[key];
 
           if (t) _templates.push(t);
           if (s) _scripts.push(s);
           if (c) _styles.push(c);
+          if (u) _lastUpdatedAt.push(...u);
+          if (a) _lastCachedAt.push(...a);
         });
 
         return {
@@ -96,7 +101,8 @@ export async function getPagesIndex() {
           templates: _templates,
           scripts: _scripts,
           styles: _styles,
-          revalidate: _revalidate,
+          lastUpdatedAt: Number(Math.max(..._lastUpdatedAt)),
+          lastCachedAt: Number(Math.max(..._lastCachedAt)),
         };
       })
   );
@@ -111,21 +117,10 @@ function getKey(entry: WalkEntry) {
   );
 }
 
-// Check if file has changed
-async function hasChanged(entry: WalkEntry) {
-  try {
-    const key = getKey(entry);
-
-    const cachedAt = await Deno.stat(`${BUILD_PATH}${key}index.html`)
-      .then((stat) => stat.mtime ?? new Date(0))
-      .catch(() => new Date(0));
-
-    const updatedAt = await Deno.stat(entry.path)
-      .then((stat) => stat.mtime ?? new Date())
-      .catch(() => new Date());
-
-    return updatedAt.getTime() > cachedAt.getTime();
-  } catch {
-    return true;
-  }
+// Get file modified time stamp
+async function getModifiedDate(path: string) {
+  return await Deno.stat(path)
+    .then((stat) => stat.mtime ?? new Date(0))
+    .catch(() => new Date(0))
+    .then((date) => date.getTime());
 }
