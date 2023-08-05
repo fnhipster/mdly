@@ -39,22 +39,6 @@ async function handler(request: Request): Promise<Response> {
 
   const pathname = url.pathname === '/' ? '/index/' : url.pathname;
 
-  // Redirect to trailing slash
-  if (
-    !/\.[a-zA-Z0-9]{1,4}$/.test(url.pathname) &&
-    !url.pathname.endsWith('/')
-  ) {
-    url.pathname += '/';
-
-    // redirect to trailing slash
-    return new Response(null, {
-      status: 301,
-      headers: {
-        location: url.toString(),
-      },
-    });
-  }
-
   try {
     // Return static assets
     if (/(.*\/assets\/.*)/.test(pathname)) {
@@ -67,6 +51,22 @@ async function handler(request: Request): Promise<Response> {
 
       // fallback to source files
       return await serveDir(request, { fsRoot: PAGES_PATH });
+    }
+
+    // Redirect to trailing slash
+    if (
+      !/\.[a-zA-Z0-9]{1,4}$/.test(url.pathname) &&
+      !url.pathname.endsWith('/')
+    ) {
+      url.pathname += '/';
+
+      // redirect to trailing slash
+      return new Response(null, {
+        status: 301,
+        headers: {
+          location: url.toString(),
+        },
+      });
     }
 
     const page = index.find((existing) => pathname === existing.route);
