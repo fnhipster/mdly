@@ -68,13 +68,25 @@ export async function getPageHTML(index: {
   const html = await templates?.reverse().reduce(async (child, template) => {
     const __content = await child;
 
+    const __scripts = `
+      <script type="module">
+        ${scripts}
+      </script>
+    `;
+
+    const __styles = `
+      <style>
+        ${styles}
+      </style>
+    `;
+
     return await renderEJS(template, {
       ...data,
-      __scripts: scripts,
-      __styles: styles,
+      __scripts,
+      __styles,
       __content,
     });
-  }, Promise.resolve(markdown ? await renderContent(markdown) : ''));
+  }, Promise.resolve(markdown ? await renderContent(markdown, data) : ''));
 
   return html;
 }

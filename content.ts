@@ -91,17 +91,32 @@ marked.use({
   },
 });
 
-export async function renderContent(markdown: string): Promise<string> {
-  const __content = markdown
-    ? await marked.parse(
-        markdown,
-        {
-          headerIds: false,
-          mangle: false,
-        },
-        undefined
-      )
-    : null;
+export async function renderContent(
+  markdown?: string,
+  model?: { [key: string]: unknown }
+): Promise<string | null> {
+  if (!markdown) return Promise.resolve(null);
 
-  return __content;
+  // replace variables in model
+  if (model) {
+    markdown = markdown.replace(/\{\{([^}]+)\}\}/g, (_match, key) => {
+      const value = key.split('.').reduce(
+        (obj: any, key: string) => {
+          return obj[key];
+        },
+        { ...model }
+      );
+
+      return `<span data-binding>${value}</span>`;
+    });
+  }
+
+  return await marked.parse(
+    markdown,
+    {
+      headerIds: false,
+      mangle: false,
+    },
+    undefined
+  );
 }
