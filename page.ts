@@ -41,15 +41,9 @@ export async function getPageHTML(index: {
     index.scripts &&
     (
       await Promise.all([
-        `const initializers = [];`,
         ...index.scripts.map(async (script) => {
-          return await Deno.readTextFile(script)
-            .then((js) => `initializers.push(${js});`)
-            .catch();
+          return await Deno.readTextFile(script).catch();
         }),
-        await fetch(dirname(import.meta.url) + '/client.js').then((res) =>
-          res.text()
-        ),
       ])
     ).join('\n');
 

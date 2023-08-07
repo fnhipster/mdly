@@ -107,7 +107,7 @@ export async function renderContent(
         { ...model }
       );
 
-      return `<span data-binding>${value}</span>`;
+      return `<span data-binding="${key}">${value}</span>`;
     });
   }
 

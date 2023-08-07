@@ -1,6 +1,4 @@
-const scope = document.querySelectorAll(`[data-scope]`)[0];
-
-function createState(initialState = {}) {
+export function createState(initialState = {}, scope = document) {
   const $bindings = scope.querySelectorAll('[data-binding]');
 
   const state = new Proxy(initialState, {
@@ -28,7 +26,3 @@ function createState(initialState = {}) {
 
   return state;
 }
-
-initializers?.forEach?.((_init) => {
-  _init?.(scope, { createState });
-});
