@@ -5,8 +5,8 @@ export async function getPagesIndex() {
   const templates: Record<string, string> = {};
   const models: Record<string, string> = {};
   const contents: Record<string, string> = {};
-  const scripts: Record<string, string> = {};
-  const styles: Record<string, string> = {};
+  const scripts: Record<string, string[]> = {};
+  const styles: Record<string, string[]> = {};
   const updatedAt: Record<string, number[]> = {};
   const cachedAt: Record<string, number[]> = {};
   const routes: string[] = [];
@@ -22,12 +22,22 @@ export async function getPagesIndex() {
       templates[key] = entry.path;
     }
 
-    if (entry.isFile && entry.name === 'script.js') {
-      scripts[key] = entry.path;
+    if (
+      entry.isFile &&
+      entry.path.match(new RegExp(`.*\/__scripts\/${entry.name}$`)) &&
+      entry.name.endsWith('.js')
+    ) {
+      scripts[key] = scripts[key] ?? [];
+      scripts[key].push(entry.path);
     }
 
-    if (entry.isFile && entry.name === 'style.css') {
-      styles[key] = entry.path;
+    if (
+      entry.isFile &&
+      entry.path.match(new RegExp(`.*\/__styles\/${entry.name}$`)) &&
+      entry.name.endsWith('.css')
+    ) {
+      styles[key] = styles[key] ?? [];
+      styles[key].push(entry.path);
     }
 
     if (entry.isFile && entry.name === 'model.ts') {
@@ -88,8 +98,8 @@ export async function getPagesIndex() {
           const a = cachedAt[key];
 
           if (t) _templates.push(t);
-          if (s) _scripts.push(s);
-          if (c) _styles.push(c);
+          if (s) _scripts.push(...s);
+          if (c) _styles.push(...c);
           if (u) _lastUpdatedAt.push(...u);
           if (a) _lastCachedAt.push(...a);
         });
@@ -113,6 +123,8 @@ function getKey(entry: WalkEntry) {
   return (
     entry.path
       .replace(new RegExp(`^${PAGES_PATH}`), '')
+      .replace('/__scripts', '')
+      .replace('/__styles', '')
       .replace(entry.isFile ? `/${entry.name}` : '', '') + '/'
   );
 }

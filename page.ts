@@ -41,15 +41,13 @@ export async function getPageHTML(index: {
     index.scripts &&
     (
       await Promise.all([
-        `const initializers = [];`,
         ...index.scripts.map(async (script) => {
           return await Deno.readTextFile(script)
-            .then((js) => `initializers.push(${js});`)
+            .then((s) => {
+              return `<script type="module">${s}</script>`;
+            })
             .catch();
         }),
-        await fetch(dirname(import.meta.url) + '/client.js').then((res) =>
-          res.text()
-        ),
       ])
     ).join('\n');
 
@@ -59,22 +57,30 @@ export async function getPageHTML(index: {
     (
       await Promise.all(
         index.styles.map(async (style) => {
-          return await Deno.readTextFile(style).catch();
+          return await Deno.readTextFile(style)
+            .then((s) => {
+              return `<style>${s}</style>`;
+            })
+            .catch();
         })
       )
     ).join('\n');
 
   // Render Templates to HTML recursively
   const html = await templates?.reverse().reduce(async (child, template) => {
-    const __content = await child;
+    const __content = `<div data-scope="content">${await child}</div>`;
+
+    const __scripts = scripts;
+
+    const __styles = styles;
 
     return await renderEJS(template, {
       ...data,
-      __scripts: scripts,
-      __styles: styles,
+      __scripts,
+      __styles,
       __content,
     });
-  }, Promise.resolve(markdown ? await renderContent(markdown) : ''));
+  }, Promise.resolve(markdown ? await renderContent(markdown, data) : ''));
 
   return html;
 }
