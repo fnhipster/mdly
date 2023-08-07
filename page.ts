@@ -42,7 +42,11 @@ export async function getPageHTML(index: {
     (
       await Promise.all([
         ...index.scripts.map(async (script) => {
-          return await Deno.readTextFile(script).catch();
+          return await Deno.readTextFile(script)
+            .then((s) => {
+              return `<script type="module">${s}</script>`;
+            })
+            .catch();
         }),
       ])
     ).join('\n');
@@ -53,26 +57,22 @@ export async function getPageHTML(index: {
     (
       await Promise.all(
         index.styles.map(async (style) => {
-          return await Deno.readTextFile(style).catch();
+          return await Deno.readTextFile(style)
+            .then((s) => {
+              return `<style>${s}</style>`;
+            })
+            .catch();
         })
       )
     ).join('\n');
 
   // Render Templates to HTML recursively
   const html = await templates?.reverse().reduce(async (child, template) => {
-    const __content = await child;
+    const __content = `<div data-scope="content">${await child}</div>`;
 
-    const __scripts = `
-      <script type="module">
-        ${scripts}
-      </script>
-    `;
+    const __scripts = scripts;
 
-    const __styles = `
-      <style>
-        ${styles}
-      </style>
-    `;
+    const __styles = styles;
 
     return await renderEJS(template, {
       ...data,
