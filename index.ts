@@ -109,8 +109,20 @@ export async function getPagesIndex() {
           model,
           content,
           templates: _templates,
-          scripts: _scripts,
-          styles: _styles,
+          scripts: _scripts
+            // Sort the file paths based on their file names
+            .sort((a: string, b: string) => {
+              const fileNameA = getFileName(a);
+              const fileNameB = getFileName(b);
+              return fileNameA.localeCompare(fileNameB);
+            }),
+          styles: _styles
+            // Sort the file paths based on their file names
+            .sort((a: string, b: string) => {
+              const fileNameA = getFileName(a);
+              const fileNameB = getFileName(b);
+              return fileNameA.localeCompare(fileNameB);
+            }),
           lastUpdatedAt: Number(Math.max(..._lastUpdatedAt)),
           lastCachedAt: Number(Math.max(..._lastCachedAt)),
         };
@@ -135,4 +147,9 @@ async function getModifiedDate(path: string) {
     .then((stat) => stat.mtime ?? new Date(0))
     .catch(() => new Date(0))
     .then((date) => date.getTime());
+}
+
+// Function to extract the file name from the path
+function getFileName(filePath: string) {
+  return filePath.split('/').pop() as string;
 }
