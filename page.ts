@@ -101,9 +101,10 @@ export async function getPageHTML(index: {
           styles: [...new Set(__SCOPE__.style)],
           templates: [...new Set(__SCOPE__.template)],
         })}'>
-          ${await Deno.readTextFile(
-            new URL('client.js', import.meta.url).href
-          ).catch(console.log)}
+        ${await fetch(new URL('client.js', import.meta.url).href)
+          .then((res) => res.text())
+          .catch(console.log)}
+
         </script>
       `;
       const __styles = styles;
