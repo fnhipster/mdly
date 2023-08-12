@@ -6,7 +6,6 @@ import { exists } from 'https://deno.land/std@0.78.0/fs/exists.ts';
 import { getPageHTML } from './page.ts';
 import { ensureDir } from 'https://deno.land/std@0.78.0/fs/mod.ts';
 import {
-  basename,
   fromFileUrl,
   dirname,
 } from 'https://deno.land/std@0.194.0/path/mod.ts';

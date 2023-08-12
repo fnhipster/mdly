@@ -27,8 +27,11 @@ export async function getPagesIndex() {
       entry.path.match(new RegExp(`.*\/__scripts\/${entry.name}$`)) &&
       entry.name.endsWith('.js')
     ) {
-      scripts[key] = scripts[key] ?? [];
-      scripts[key].push(entry.path);
+      if (scripts[key]) {
+        scripts[key].push(entry.path);
+      } else {
+        scripts[key] = [entry.path];
+      }
     }
 
     if (
@@ -36,8 +39,11 @@ export async function getPagesIndex() {
       entry.path.match(new RegExp(`.*\/__styles\/${entry.name}$`)) &&
       entry.name.endsWith('.css')
     ) {
-      styles[key] = styles[key] ?? [];
-      styles[key].push(entry.path);
+      if (styles[key]) {
+        styles[key].push(entry.path);
+      } else {
+        styles[key] = [entry.path];
+      }
     }
 
     if (entry.isFile && entry.name === 'model.ts') {
@@ -48,7 +54,12 @@ export async function getPagesIndex() {
       contents[key] = entry.path;
     }
 
-    if (entry.isDirectory && key !== '') {
+    if (
+      entry.isDirectory &&
+      key !== '' &&
+      entry.name !== '__scripts' &&
+      entry.name !== '__styles'
+    ) {
       routes.push(key);
     }
 
@@ -87,8 +98,9 @@ export async function getPagesIndex() {
 
         const _routes: string[] = [];
 
-        route.split('/').forEach((r) => {
+        ['/', ...(route.match(/([^\/]+)/g) || [])].forEach((r) => {
           _routes.push(r);
+
           const key = (_routes.join('/') + '/').replace('//', '/');
 
           const t = templates[key];
@@ -109,20 +121,8 @@ export async function getPagesIndex() {
           model,
           content,
           templates: _templates,
-          scripts: _scripts
-            // Sort the file paths based on their file names
-            .sort((a: string, b: string) => {
-              const fileNameA = getFileName(a);
-              const fileNameB = getFileName(b);
-              return fileNameA.localeCompare(fileNameB);
-            }),
-          styles: _styles
-            // Sort the file paths based on their file names
-            .sort((a: string, b: string) => {
-              const fileNameA = getFileName(a);
-              const fileNameB = getFileName(b);
-              return fileNameA.localeCompare(fileNameB);
-            }),
+          scripts: _scripts.sort(sortFilePaths),
+          styles: _styles.sort(sortFilePaths),
           lastUpdatedAt: Number(Math.max(..._lastUpdatedAt)),
           lastCachedAt: Number(Math.max(..._lastCachedAt)),
         };
@@ -149,7 +149,7 @@ async function getModifiedDate(path: string) {
     .then((date) => date.getTime());
 }
 
-// Function to extract the file name from the path
-function getFileName(filePath: string) {
-  return filePath.split('/').pop() as string;
+// Sort the file paths based on their file names
+function sortFilePaths(a: string, b: string) {
+  return a.localeCompare(b);
 }
