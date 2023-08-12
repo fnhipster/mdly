@@ -102,7 +102,7 @@ export async function getPageHTML(index: {
           templates: [...new Set(__SCOPE__.template)],
         })}'>
           ${await Deno.readTextFile(
-            new URL('client.js', import.meta.url)
+            new URL('client.js', import.meta.url).pathname
           ).catch(console.log)}
         </script>
       `;
