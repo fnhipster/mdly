@@ -94,11 +94,17 @@ export async function getPageHTML(index: {
       const __content = `<div data-scope="${scope}">${await child}</div>`;
       const __scripts = `
         ${scripts}
-        <script data-route='${JSON.stringify({
+
+        
+        <script type="module" data-scopes='${JSON.stringify({
           scripts: [...new Set(__SCOPE__.script)],
           styles: [...new Set(__SCOPE__.style)],
           templates: [...new Set(__SCOPE__.template)],
-        })}'></script>
+        })}'>
+          ${await Deno.readTextFile(
+            new URL('./client.js', import.meta.url)
+          ).catch(console.log)}
+        </script>
       `;
       const __styles = styles;
 

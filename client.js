@@ -19,13 +19,13 @@ $links.forEach(($link) => {
     const $vdom = document.createElement('html');
     $vdom.innerHTML = await response.text();
 
-    const $currentScope = document.querySelector('[data-route]');
-    const $nextScope = $vdom.querySelector('[data-route]');
+    const $currentScope = document.querySelector('script[data-scopes]');
+    const $nextScope = $vdom.querySelector('script[data-scopes]');
 
     // Update DOM
     const scope = {
-      current: JSON.parse($currentScope?.dataset.route),
-      next: JSON.parse($nextScope?.dataset.route),
+      current: JSON.parse($currentScope?.dataset.scopes),
+      next: JSON.parse($nextScope?.dataset.scopes),
     };
 
     const title = $vdom.querySelector('title').innerText;

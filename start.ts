@@ -5,10 +5,6 @@ import { BUILD_PATH, PAGES_PATH, PORT } from './config.ts';
 import { exists } from 'https://deno.land/std@0.78.0/fs/exists.ts';
 import { getPageHTML } from './page.ts';
 import { ensureDir } from 'https://deno.land/std@0.78.0/fs/mod.ts';
-import {
-  fromFileUrl,
-  dirname,
-} from 'https://deno.land/std@0.194.0/path/mod.ts';
 
 // Create build directory
 await ensureDir(BUILD_PATH);
@@ -44,18 +40,6 @@ async function handler(request: Request): Promise<Response> {
   const pathname = url.pathname === '/' ? '/index/' : url.pathname;
 
   try {
-    // Return assets from ./static directory
-    if (/(.*\/\.mdly\/.*)/.test(pathname)) {
-      const staticPath = `${fromFileUrl(dirname(import.meta.url))}/static`;
-
-      // override request url
-      request = new Request(request.url.replace('/.mdly', ''), request);
-
-      return await serveDir(request, {
-        fsRoot: staticPath,
-      });
-    }
-
     // Return static assets
     if (/(.*\/assets\/.*)/.test(pathname)) {
       // check if file is in build directory
