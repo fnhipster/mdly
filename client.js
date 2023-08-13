@@ -1,23 +1,25 @@
 function init(root = document) {
-  root.querySelectorAll('a').forEach(($link) => {
-    $link.addEventListener('click', handleLinks);
+  root.querySelectorAll('a').forEach((d) => {
+    d.addEventListener('click', (e) => {
+      const d = e.currentTarget;
+      const current = window.location.pathname;
+      const next = d.getAttribute('href');
+
+      // Only handle internal links
+      if (!next.startsWith('/')) return;
+
+      // Prevent default behavior
+      e.preventDefault();
+
+      // Only handle new requests
+      if (next === current) return;
+
+      setRoute(next);
+    });
   });
 }
 
-async function handleLinks(e) {
-  const $link = e.currentTarget;
-  const current = window.location.pathname;
-  const next = $link.getAttribute('href');
-
-  // Only handle internal links
-  if (!next.startsWith('/')) return;
-
-  // Prevent default behavior
-  e.preventDefault();
-
-  // Only handle new requests
-  if (next === current) return;
-
+async function setRoute(next) {
   // Get requested page
   const response = await fetch(next);
   const $vdom = document.createElement('html');
