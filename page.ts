@@ -95,12 +95,13 @@ export async function getPageHTML(index: {
       const __scripts = `
         ${scripts}
 
-        
-        <script type="module" data-scopes='${JSON.stringify({
+        <script data-scopes='${JSON.stringify({
           scripts: [...new Set(__SCOPE__.script)],
           styles: [...new Set(__SCOPE__.style)],
           templates: [...new Set(__SCOPE__.template)],
-        })}'>
+        })}'></script>
+
+        <script type="module">
         ${await fetch(new URL('client.js', import.meta.url).href)
           .then((res) => res.text())
           .catch(console.log)}
